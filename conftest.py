@@ -24,7 +24,7 @@ def random_user_data():
 def valid_ingredient_id():
     response = requests.get(BASE_URL + INGREDIENTS_ENDPOINT)
     data = response.json()
-    ingredients_list = data["ingredients"]
+    ingredients_list = data["data"]
     return ingredients_list[0]["_id"]
 
 @pytest.fixture
