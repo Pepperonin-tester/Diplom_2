@@ -3,7 +3,7 @@ import pytest
 import random
 import string
 import requests
-from constants import BASE_URL, REGISTER_ENDPOINT, INGREDIENTS_ENDPOINT, DELETE_USER_ENDPOINT
+from constants import REGISTER_URL, INGREDIENTS_URL, DELETE_USER_URL
 
 
 def generate_random_string(length):
@@ -26,7 +26,7 @@ def random_user_data():
 @pytest.fixture
 def valid_ingredient_id():
     with allure.step("Получаем список ингредиентов и берём валидный id"):
-        response = requests.get(BASE_URL + INGREDIENTS_ENDPOINT)
+        response = requests.get(INGREDIENTS_URL)
         data = response.json()
         ingredients_list = data["data"]
         return ingredients_list[0]["_id"]
@@ -35,11 +35,22 @@ def valid_ingredient_id():
 @pytest.fixture
 def registered_user(random_user_data):
     with allure.step("Регистрируем нового пользователя через API"):
-        response = requests.post(BASE_URL + REGISTER_ENDPOINT, json=random_user_data)
+        response = requests.post(REGISTER_URL, json=random_user_data)
         data = response.json()
         access_token = data["accessToken"]
 
     yield data
 
     with allure.step("Удаляем созданного пользователя после теста"):
-        requests.delete(BASE_URL + DELETE_USER_ENDPOINT, headers={"Authorization": access_token})
+        requests.delete(DELETE_USER_URL, headers={"Authorization": access_token})
+
+
+@pytest.fixture
+def user_cleanup():
+    tokens_to_delete = []
+
+    yield tokens_to_delete
+
+    with allure.step("Удаляем созданных в тесте пользователей"):
+        for token in tokens_to_delete:
+            requests.delete(DELETE_USER_URL, headers={"Authorization": token})
